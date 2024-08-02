@@ -1,6 +1,6 @@
 <?php
 
-namespace ZhaDev\RegisterLoginForm;
+namespace NuhDev\RegisterLoginForm;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
