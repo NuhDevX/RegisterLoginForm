@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace NuhDev\RegisterLoginForm;
+namespace NuhDevX\RegisterLoginForm;
 
 class CustomForm extends Form {
 
