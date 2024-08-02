@@ -3,8 +3,6 @@ version: 1.0.0
 main: NuhDev\RegisterLoginForm\Main
 api: [5.0.0]
 author: NuhDev
-dependencies:
-  - FormAPI
 commands:
   resetpassword:
     description: Reset password for a player
