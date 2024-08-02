@@ -103,8 +103,8 @@ class Main extends PluginBase implements Listener {
         $form->setTitle("Reset Password");
         $form->setContent("Select a player to reset their password.");
 
-        foreachh (array_keys($this->passwords->getAll()) as $name) {
-            $form->addButton($name)
+        foreach (array_keys($this->passwords->getAll()) as $name) {
+            $form->addButton($name);
         }
 
         $admin->sendForm($form);
