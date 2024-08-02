@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace jojoe77777\FormAPI;
+namespace NuhDev\RegisterLoginForm;
 
 use pocketmine\plugin\PluginBase;
 
