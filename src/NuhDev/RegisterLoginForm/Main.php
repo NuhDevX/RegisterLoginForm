@@ -115,11 +115,11 @@ class Main extends PluginBase implements Listener {
         $form = new SimpleForm(function (Player $admin, ?int $data) use ($playerName) {
             if ($data === null) return;
 
-            if ($data === 0) { // Reset password
+            if ($data === 0) { 
                 $this->passwords->remove($playerName);
                 $this->passwords->save();
                 $admin->sendMessage("Successfully reset password for $playerName.");
-            } else { // Back
+            } else { 
                 $this->showResetPasswordForm($admin);
             }
         });
