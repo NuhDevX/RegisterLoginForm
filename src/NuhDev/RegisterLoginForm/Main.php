@@ -6,7 +6,6 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\player\Player;
-use jojoe77777\FormAPI\{CustomForm, SimpleForm, ModalForm};
 use pocketmine\command\{Command, CommandSender};
 use pocketmine\utils\Config;
 
