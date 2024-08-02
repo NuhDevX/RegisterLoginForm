@@ -63,4 +63,3 @@ Modal Form: Confirm password reset
 
 ---
 
-Feel free to adjust the description to fit the specific details or additional features of your plugin.
