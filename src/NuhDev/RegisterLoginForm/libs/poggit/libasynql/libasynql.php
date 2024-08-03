@@ -20,17 +20,17 @@
 
 declare(strict_types=1);
 
-namespace poggit\libasynql;
+namespace NuhDev\RegisterLoginForm\libs\poggit\libasynql;
 
 use InvalidArgumentException;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Terminal;
 use pocketmine\utils\Utils;
-use poggit\libasynql\base\DataConnectorImpl;
-use poggit\libasynql\base\SqlThreadPool;
-use poggit\libasynql\mysqli\MysqlCredentials;
-use poggit\libasynql\mysqli\MysqliThread;
-use poggit\libasynql\sqlite3\Sqlite3Thread;
+use NuhDev\RegisterLoginForm\libs\poggit\libasynql\base\DataConnectorImpl;
+use NuhDev\RegisterLoginForm\libs\poggit\libasynql\base\SqlThreadPool;
+use NuhDev\RegisterLoginForm\libs\poggit\libasynql\mysqli\MysqlCredentials;
+use NuhDev\RegisterLoginForm\libs\poggit\libasynql\mysqli\MysqliThread;
+use NuhDev\RegisterLoginForm\libs\poggit\libasynql\sqlite3\Sqlite3Thread;
 use function array_keys;
 use function count;
 use function extension_loaded;
