@@ -1,3 +1,3 @@
 database:
-  type: sqlite
-  database: database.db
+    sqlite:
+        file: sqlite.sql
