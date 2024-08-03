@@ -5,4 +5,7 @@ branches:
 projects:
   RegisterLoginForm:
     path: ""
+    libs:
+    - name: SOFe/AwaitGenerator/await-generator
+      version: ^3.6.1
 ...
