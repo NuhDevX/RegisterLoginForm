@@ -20,7 +20,7 @@
 
 declare(strict_types=1);
 
-namespace NuhDev\RegisterLogin\libs\poggit\libasynql;
+namespace NuhDev\RegisterLoginForm\libs\poggit\libasynql;
 
 use Closure;
 use Exception;
