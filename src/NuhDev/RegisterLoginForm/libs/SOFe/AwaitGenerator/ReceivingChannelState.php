@@ -26,7 +26,6 @@ namespace NuhDev\RegisterLoginForm\libs\SOFe\AwaitGenerator;
  * @template T
  * @internal
  */
-final class ReceivingChannelState{
-	/** @var list<Closure(T): void> */
+final class ReceivingChannelState {
 	public array $queue = [];
 }
