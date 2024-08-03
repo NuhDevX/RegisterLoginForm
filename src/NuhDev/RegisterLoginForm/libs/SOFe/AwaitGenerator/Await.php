@@ -234,6 +234,10 @@ class Await extends PromiseState{
 					} catch(Throwable $e) {
 						$input->throw($e);
 					}
+
+                                        if (!$input->valid()) {
+					    break;
+                                        }	
 				}
 				return $input->getReturn();
 			})();
