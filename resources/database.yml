@@ -1,0 +1,4 @@
+type: sqlite
+sqlite:
+  file: passwords.db
+  
