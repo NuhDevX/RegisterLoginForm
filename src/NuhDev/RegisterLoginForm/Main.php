@@ -8,6 +8,9 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\player\Player;
 use pocketmine\command\{Command, CommandSender};
 use pocketmine\utils\Config;
+use NuhDev\RegisterLoginForm\jojoe77777\FormAPI\SimpleForm;
+use NuhDev\RegisterLoginForm\jojoe77777\FormAPI\CustomForm;
+use NuhDev\RegisterLoginForm\jojoe77777\FormAPI\ModalForm;
 
 class Main extends PluginBase implements Listener {
 
