@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace NuhDev\RegisterLoginForm\jojoe77777\FormAPI;
+namespace NuhDev\RegisterLoginForm\libs\jojoe77777\FormAPI;
 
 use pocketmine\form\Form as IForm;
 use pocketmine\player\Player;
