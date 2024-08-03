@@ -20,7 +20,7 @@
 
 declare(strict_types=1);
 
-namespace NuhDev\RegisLoginForm\libs\SOFe\AwaitGenerator;
+namespace NuhDev\RegisterLoginForm\libs\SOFe\AwaitGenerator;
 
 /**
  * @template T
