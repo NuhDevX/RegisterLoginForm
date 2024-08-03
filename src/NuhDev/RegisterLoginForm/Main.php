@@ -5,7 +5,7 @@ namespace NuhDev\RegisterLoginForm;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
-use pocketmine\Player;
+use pocketmine\player\Player;
 use NuhDev\RegisterLoginForm\libs\jojoe77777\FormAPI\{CustomForm, SimpleForm, ModalForm};
 use pocketmine\command\{Command, CommandSender};
 use NuhDev\RegisterLoginForm\libs\poggit\libasynql\{libasynql, DataConnector};
