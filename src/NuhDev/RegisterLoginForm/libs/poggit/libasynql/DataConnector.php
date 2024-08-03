@@ -20,13 +20,13 @@
 
 declare(strict_types=1);
 
-namespace poggit\libasynql;
+namespace NuhDev\RegisterLoginForm\poggit\libasynql;
 
 use InvalidArgumentException;
 use Generator;
 use Logger;
-use poggit\libasynql\generic\GenericStatementFileParseException;
-use poggit\libasynql\result\SqlColumnInfo;
+use NuhDev\RegisterLoginForm\poggit\libasynql\generic\GenericStatementFileParseException;
+use NuhDev\RegisterLoginForm\poggit\libasynql\result\SqlColumnInfo;
 use SOFe\AwaitGenerator\Await;
 
 /**
