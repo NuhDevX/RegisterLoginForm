@@ -40,7 +40,4 @@ use Exception;
 final class RaceLostException extends Exception{
 	public function __construct() {
 	}
-} 
-	public function __construct() {
-	}
 }
