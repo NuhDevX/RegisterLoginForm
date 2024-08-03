@@ -5,7 +5,7 @@ namespace NuhDev\RegisterLoginForm;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
-use pocketmine\player\Player;
+use pocketmine\Player;
 use NuhDev\RegisterLoginForm\libs\jojoe77777\FormAPI\{CustomForm, SimpleForm, ModalForm};
 use pocketmine\command\{Command, CommandSender};
 use NuhDev\RegisterLoginForm\libs\poggit\libasynql\{libasynql, DataConnector};
@@ -17,6 +17,7 @@ class Main extends PluginBase implements Listener {
 
     public function onEnable(): void {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        @mkdir($this->getDataFolder());
 
         $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
             "sqlite" => "sqlite.sql",
@@ -32,7 +33,7 @@ class Main extends PluginBase implements Listener {
     public function onJoin(PlayerJoinEvent $event): void {
         $player = $event->getPlayer();
         $name = $player->getName();
-        $this->database->executeSelect("users.select_user", ["username" => $name], function(array $rows) use ($player, $name) {
+        $this->database->executeSelect("users.select_user", ["username" => $name], function(array $rows) use ($player) {
             if (empty($rows)) {
                 $this->showRegisterForm($player);
             } else {
@@ -124,10 +125,10 @@ class Main extends PluginBase implements Listener {
         $form = new SimpleForm(function (Player $admin, ?int $data) use ($playerName) {
             if ($data === null) return;
 
-            if ($data === 0) {
+            if ($data === 0) { // Reset password
                 $this->database->executeGeneric("users.delete_user", ["username" => $playerName]);
                 $admin->sendMessage("Successfully reset password for $playerName.");
-            } else { 
+            } else { // Back
                 $this->showResetPasswordForm($admin);
             }
         });
