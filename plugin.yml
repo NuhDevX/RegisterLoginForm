@@ -2,7 +2,9 @@ name: RegisterLoginForm
 version: 1.0.0
 main: NuhDev\RegisterLoginForm\Main
 api: [5.0.0]
-author: NuhDev
+authors: 
+ - NuhDev
+ - NurAzli
 commands:
   resetpassword:
     description: Reset password for a player
