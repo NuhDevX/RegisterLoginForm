@@ -6,6 +6,8 @@ projects:
   RegisterLoginForm:
     path: ""
     libs:
+    - src: poggit/libasynql/libasynql
+      version: ^4.2.3
     - src: SOF3/await-generator/await-generator
       version: "^3.0.0"
     - src: jojoe77777/FormAPI/libFormAPI
