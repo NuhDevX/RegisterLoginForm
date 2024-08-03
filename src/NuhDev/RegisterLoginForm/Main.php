@@ -20,7 +20,7 @@ class Main extends PluginBase implements Listener {
         @mkdir($this->getDataFolder());
 
         $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
-            "sqlite" => "sqlite.sql",
+           "sqlite" => "sqlite.sql",
         ]);
 
         $this->database->executeGeneric("users.create_table");
