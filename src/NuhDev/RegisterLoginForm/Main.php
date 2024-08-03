@@ -15,7 +15,6 @@ class Main extends PluginBase implements Listener {
 
     public function onEnable(): void {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        @mkdir($this->getDataFolder());
         $this->passwords = new Config($this->getDataFolder() . "passwords.yml", Config::YAML);
     }
 
