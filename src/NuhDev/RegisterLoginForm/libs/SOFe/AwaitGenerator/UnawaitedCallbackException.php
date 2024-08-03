@@ -20,7 +20,7 @@
 
 declare(strict_types=1);
 
-namespace NuhDev\RegisteeLoginForm\libs\SOFe\AwaitGenerator;
+namespace NuhDev\RegisterLoginForm\libs\SOFe\AwaitGenerator;
 
 class UnawaitedCallbackException extends AwaitException{
 	public function __construct(string $action){
