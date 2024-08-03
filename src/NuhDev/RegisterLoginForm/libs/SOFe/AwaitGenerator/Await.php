@@ -325,271 +325,100 @@ class Await extends PromiseState{
 	 *
 	 * @return (callable(): void)|null
 	 */
-	private function wakeup(callable $executor) : ?callable{
-		try{
-			$this->sleeping = false;
-			$executor();
-		}catch(Throwable $throwable){
-			$this->reject($throwable);
-			return null;
-		}
+	private function wakeup(callable $executor): ?callable {
+    try {
+        $this->sleeping = false;
+        $executor();
+    } catch (Throwable $throwable) {
+        $this->reject($throwable);
+        return null;
+    }
 
-		if(!$this->generator->valid()){
-			$ret = $this->generator->getReturn();
-			$this->resolve($ret);
-			return null;
-		}
+    if (!$this->generator->valid()) {
+        $ret = $this->generator->getReturn();
+        $this->resolve($ret);
+        return null;
+    }
 
-		// $key = $this->generator->key();
-		$this->current = $current = $this->generator->current() ?? self::RESOLVE;
+    $this->current = $current = $this->generator->current() ?? self::RESOLVE;
 
-		if($current === self::RESOLVE){
-			return function() : void{
-				$promise = new AwaitChild($this);
-				$this->promiseQueue[] = $promise;
-				$this->lastResolveUnrejected = $promise;
-				$this->generator->send(Closure::fromCallable([$promise, "resolve"]));
-			};
-		}
+    if ($current === self::RESOLVE) {
+        return function (): void {
+            $promise = new AwaitChild($this);
+            $this->promiseQueue[] = $promise;
+            $this->lastResolveUnrejected = $promise;
+            $this->generator->send(Closure::fromCallable([$promise, "resolve"]));
+        };
+    }
 
-		if($current === self::RESOLVE_MULTI){
-			return function() : void{
-				$promise = new AwaitChild($this);
-				$this->promiseQueue[] = $promise;
-				$this->lastResolveUnrejected = $promise;
-				$this->generator->send(static function(...$args) use($promise) : void{
-					$promise->resolve($args);
-				});
-			};
-		}
+    if ($current === self::RESOLVE_MULTI) {
+        return function (): void {
+            $promise = new AwaitChild($this);
+            $this->promiseQueue[] = $promise;
+            $this->lastResolveUnrejected = $promise;
+            $this->generator->send(static function (...$args) use ($promise): void {
+                $promise->resolve($args);
+            });
+        };
+    }
 
-		if($current === self::REJECT){
-			if($this->lastResolveUnrejected === null){
-				$this->reject(new AwaitException("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs"));
-				return null;
-			}
-			return function() : void{
-				$promise = $this->lastResolveUnrejected;
-				assert($promise !== null);
-				$this->lastResolveUnrejected = null;
-				$this->generator->send(Closure::fromCallable([$promise, "reject"]));
-			};
-		}
+    if ($current === self::REJECT) {
+        if ($this->lastResolveUnrejected === null) {
+            $this->reject(new AwaitException("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs"));
+            return null;
+        }
+        return function (): void {
+            $promise = $this->lastResolveUnrejected;
+            assert($promise !== null);
+            $this->lastResolveUnrejected = null;
+            $this->generator->send(Closure::fromCallable([$promise, "reject"]));
+        };
+    }
 
-		$this->lastResolveUnrejected = null;
+    $this->lastResolveUnrejected = null;
 
-		if($current === self::RACE){
-			if(count($this->promiseQueue) === 0){
-				$this->reject(new AwaitException("Yielded Await::RACE when there is nothing racing"));
-				return null;
-			}
+    if ($current === self::RACE) {
+        if (count($this->promiseQueue) === 0) {
+            $this->reject(new AwaitException("Yielded Await::RACE when there is nothing racing"));
+            return null;
+        }
 
-			$hasResult = 0; // 0 = all pending, 1 = one resolved, 2 = one rejected
-			foreach($this->promiseQueue as $promise){
-				if($promise->state === self::STATE_RESOLVED){
-					$hasResult = 1;
-					$result = $promise->resolved;
-					break;
-				}
-				if($promise->state === self::STATE_REJECTED){
-					$hasResult = 2;
-					$result = $promise->rejected;
-					break;
-				}
-			}
+        $hasResult = 0; // 0 = all pending, 1 = one resolved, 2 = one rejected
+        foreach ($this->promiseQueue as $promise) {
+            if ($promise->state === self::STATE_RESOLVED) {
+                $hasResult = 1;
+                $result = $promise->resolved;
+                break;
+            }
+            if ($promise->state === self::STATE_REJECTED) {
+                $hasResult = 2;
+                $result = $promise->rejected;
+                break;
+            }
+        }
 
-			if($hasResult !== 0){
-				foreach($this->promiseQueue as $p){
-					$p->cancelled = true;
-				}
-				$this->promiseQueue = [];
-				assert(isset($result));
-				if($hasResult === 1){
-					return function() use ($result) : void{
-						$this->generator->send($result);
-					};
-				}
-				assert($hasResult === 2);
-				return function() use ($result) : void{
-					$this->generator->throw($result);
-				};
-			}
+        if ($hasResult !== 0) {
+            foreach ($this->promiseQueue as $p) {
+                $p->cancelled = true;
+            }
+            $this->promiseQueue = [];
+            assert(isset($result));
+            if ($hasResult === 1) {
+                return function () use ($result): void {
+                    $this->generator->send($result);
+                };
+            }
+            if ($hasResult === 2) {
+                return function () use ($result): void {
+                    $this->generator->throw($result);
+                };
+            }
+        }
 
-			$this->sleeping = true;
-			return null;
-		}
+        return function (): void {
+            $this->sleeping = true;
+        };
+    }
 
-		if($current === self::ONCE || $current === self::ALL){
-			if($current === self::ONCE && count($this->promiseQueue) !== 1){
-				$this->reject(new AwaitException("Yielded Await::ONCE when the pending queue size is " . count($this->promiseQueue) . " != 1"));
-				return null;
-			}
-
-			$results = [];
-
-			// first check if nothing is immediately rejected
-			foreach($this->promiseQueue as $promise){
-				if($promise->state === self::STATE_REJECTED){
-					foreach($this->promiseQueue as $p){
-						$p->cancelled = true;
-					}
-					$this->promiseQueue = [];
-					$ex = $promise->rejected;
-					return function() use ($ex) : void{
-						$this->generator->throw($ex);
-					};
-				}
-			}
-
-			foreach($this->promiseQueue as $promise){
-				// if anything is pending, some others are pending and some others are resolved, but we will eventually get rejected/resolved from the pending promises
-				if($promise->state === self::STATE_PENDING){
-					$this->sleeping = true;
-					return null;
-				}
-				assert($promise->state === self::STATE_RESOLVED);
-				$results[] = $promise->resolved;
-			}
-
-			// all resolved
-			$this->promiseQueue = [];
-			return function() use ($current, $results) : void{
-				$this->generator->send($current === self::ONCE ? $results[0] : $results);
-			};
-		}
-
-		if($current instanceof Generator){
-			if(!self::$warnedDeprecatedDirectYield) {
-				$this->getLogger()->notice("\n" . 'NOTICE: `yield $generator` has been deprecated, please use `yield from $generator` instead.' . "\n");
-				self::$warnedDeprecatedDirectYield = true;
-			}
-
-			if(!empty($this->promiseQueue)){
-				$this->reject(new UnawaitedCallbackException("Yielding a generator"));
-				return null;
-			}
-
-			$child = new AwaitChild($this);
-			$await = Await::g2c($current, [$child, "resolve"], [$child, "reject"]);
-
-			if($await->state === self::STATE_RESOLVED){
-				$return = $await->resolved;
-				return function() use ($return) : void{
-					$this->generator->send($return);
-				};
-			}
-			if($await->state === self::STATE_REJECTED){
-				$ex = $await->rejected;
-				return function() use ($ex) : void{
-					$this->generator->throw($ex);
-				};
-			}
-
-			$this->sleeping = true;
-			$this->current = self::ONCE;
-			$this->promiseQueue = [$await];
-			return null;
-		}
-
-		$this->reject(new AwaitException("Unknown yield value"));
-		return null;
-	}
-
-	/**
-	 * @phpstan-param AwaitChild<T> $changed
-	 *
-	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
-	 */
-	public function recheckPromiseQueue(AwaitChild $changed) : void{
-		assert($this->sleeping);
-		if($this->current === self::ONCE){
-			assert(count($this->promiseQueue) === 1);
-		}
-
-		if($this->current === self::RACE){
-			foreach($this->promiseQueue as $p){
-				$p->cancelled = true;
-			}
-			$this->promiseQueue = [];
-
-			if($changed->state === self::STATE_REJECTED){
-				$ex = $changed->rejected;
-				$this->wakeupFlat(function() use ($ex) : void{
-					$this->generator->throw($ex);
-				});
-			}else{
-				$value = $changed->resolved;
-				$this->wakeupFlat(function() use ($value) : void{
-					$this->generator->send($value);
-				});
-			}
-			return;
-		}
-
-		$current = $this->current;
-		$results = [];
-		foreach($this->promiseQueue as $promise){
-			if($promise->state === self::STATE_PENDING){
-				return;
-			}
-			if($promise->state === self::STATE_REJECTED){
-				foreach($this->promiseQueue as $p){
-					$p->cancelled = true;
-				}
-				$this->promiseQueue = [];
-				$ex = $promise->rejected;
-				$this->wakeupFlat(function() use ($ex) : void{
-					$this->generator->throw($ex);
-				});
-				return;
-			}
-			assert($promise->state === self::STATE_RESOLVED);
-			$results[] = $promise->resolved;
-		}
-		// all resolved
-		$this->promiseQueue = [];
-		$this->wakeupFlat(function() use ($current, $results) : void{
-			$this->generator->send($current === self::ONCE ? $results[0] : $results);
-		});
-	}
-
-	/**
-	 * @param mixed $value
-	 *
-	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
-	 */
-	public function resolve($value) : void{
-		if(!empty($this->promiseQueue)){
-			$this->reject(new UnawaitedCallbackException("Resolution of await generator"));
-			return;
-		}
-		$this->sleeping = true;
-		parent::resolve($value);
-		if($this->onComplete){
-			($this->onComplete)($this->resolved);
-		}
-	}
-
-	/**
-	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
-	 */
-	public function reject(Throwable $throwable) : void{
-		$this->sleeping = true;
-
-		parent::reject($throwable);
-		foreach($this->catches as $class => $onError){
-			if($class === "" || is_a($throwable, $class)){
-				$onError($throwable);
-				return;
-			}
-		}
-		throw new AwaitException("Unhandled async exception: {$throwable->getMessage()}", 0, $throwable);
-	}
-
-	/**
-	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
-	 */
-	public function isSleeping() : bool{
-		return $this->sleeping;
-	}
+    return null;
 }
