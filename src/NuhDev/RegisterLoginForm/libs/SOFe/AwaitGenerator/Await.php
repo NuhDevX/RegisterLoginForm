@@ -19,8 +19,6 @@
  * limitations under the License.
  */
 
-declare(strict_types=1);
-
 namespace NuhDev\RegisterLoginForm\libs\SOFe\AwaitGenerator;
 
 use AssertionError;
