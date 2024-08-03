@@ -5,30 +5,41 @@ namespace NuhDev\RegisterLoginForm;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
-use pocketmine\player\Player;
+use pocketmine\Player;
+use jojoe77777\FormAPI\{CustomForm, SimpleForm, ModalForm};
 use pocketmine\command\{Command, CommandSender};
-use pocketmine\utils\Config;
-use NuhDev\RegisterLoginForm\jojoe77777\FormAPI\SimpleForm;
-use NuhDev\RegisterLoginForm\jojoe77777\FormAPI\CustomForm;
-use NuhDev\RegisterLoginForm\jojoe77777\FormAPI\ModalForm;
+use poggit\libasynql\{libasynql, DataConnector};
 
 class Main extends PluginBase implements Listener {
 
-    private $passwords;
+    /** @var DataConnector */
+    private $database;
 
     public function onEnable(): void {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $this->passwords = new Config($this->getDataFolder() . "passwords.yml", Config::YAML);
+        @mkdir($this->getDataFolder());
+
+        $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
+            "sqlite" => "sqlite.sql",
+        ]);
+
+        $this->database->executeGeneric("users.create_table");
+    }
+
+    public function onDisable(): void {
+        $this->database->close();
     }
 
     public function onJoin(PlayerJoinEvent $event): void {
         $player = $event->getPlayer();
         $name = $player->getName();
-        if (!$this->passwords->exists($name)) {
-            $this->showRegisterForm($player);
-        } else {
-            $this->showLoginForm($player);
-        }
+        $this->database->executeSelect("users.select_user", ["username" => $name], function(array $rows) use ($player, $name) {
+            if (empty($rows)) {
+                $this->showRegisterForm($player);
+            } else {
+                $this->showLoginForm($player, $rows[0]["password"]);
+            }
+        });
     }
 
     private function showRegisterForm(Player $player): void {
@@ -39,11 +50,11 @@ class Main extends PluginBase implements Listener {
 
             if ($password === $confirmPassword) {
                 $name = $player->getName();
-                $this->passwords->set($name, [
+                $this->database->executeInsert("users.insert_user", [
+                    "username" => $name,
                     "password" => $password,
-                    "registered_at" => date("Y-m-d H:i:s")
+                    "registered_at" => time()
                 ]);
-                $this->passwords->save();
                 $player->sendMessage("Successfully registered!");
             } else {
                 $player->kick("Passwords do not match. Please register again.");
@@ -57,13 +68,11 @@ class Main extends PluginBase implements Listener {
         $player->sendForm($form);
     }
 
-    private function showLoginForm(Player $player): void {
-        $form = new CustomForm(function (Player $player, ?array $data) {
+    private function showLoginForm(Player $player, string $storedPassword): void {
+        $form = new CustomForm(function (Player $player, ?array $data) use ($storedPassword) {
             if ($data === null) return;
 
             $password = $data[0];
-            $name = $player->getName();
-            $storedPassword = $this->passwords->get($name)["password"];
 
             if ($password === $storedPassword) {
                 $player->sendMessage("Successfully logged in!");
@@ -92,34 +101,32 @@ class Main extends PluginBase implements Listener {
     }
 
     private function showResetPasswordForm(Player $admin): void {
-        $form = new SimpleForm(function (Player $admin, ?int $data) {
-            if ($data === null) return;
+        $this->database->executeSelect("users.select_all_users", [], function(array $rows) use ($admin) {
+            $form = new SimpleForm(function (Player $admin, ?int $data) use ($rows) {
+                if ($data === null) return;
 
-            $playerNames = array_keys($this->passwords->getAll());
-            if (isset($playerNames[$data])) {
-                $this->showConfirmResetForm($admin, $playerNames[$data]);
+                if (isset($rows[$data])) {
+                    $this->showConfirmResetForm($admin, $rows[$data]["username"], $rows[$data]["password"], $rows[$data]["registered_at"]);
+                }
+            });
+
+            $form->setTitle("Reset Password");
+            $form->setContent("Select a player to reset their password.");
+
+            foreach ($rows as $row) {
+                $form->addButton($row["username"]);
             }
+
+            $admin->sendForm($form);
         });
-
-        $form->setTitle("Reset Password");
-        $form->setContent("Select a player to reset their password.");
-
-        foreach (array_keys($this->passwords->getAll()) as $name) {
-            $form->addButton($name);
-        }
-
-        $admin->sendForm($form);
     }
 
-    private function showConfirmResetForm(Player $admin, string $playerName): void {
-        $data = $this->passwords->get($playerName);
-
+    private function showConfirmResetForm(Player $admin, string $playerName, string $password, int $registeredAt): void {
         $form = new SimpleForm(function (Player $admin, ?int $data) use ($playerName) {
             if ($data === null) return;
 
-            if ($data === 0) { 
-                $this->passwords->remove($playerName);
-                $this->passwords->save();
+            if ($data === 0) {
+                $this->database->executeGeneric("users.delete_user", ["username" => $playerName]);
                 $admin->sendMessage("Successfully reset password for $playerName.");
             } else { 
                 $this->showResetPasswordForm($admin);
@@ -127,7 +134,7 @@ class Main extends PluginBase implements Listener {
         });
 
         $form->setTitle("Confirm Reset");
-        $form->setContent("Player: $playerName\nPassword: {$data['password']}\nRegistered at: {$data['registered_at']}");
+        $form->setContent("Player: $playerName\nPassword: $password\nRegistered at: " . date("Y-m-d H:i:s", $registeredAt));
         $form->addButton("Reset Password");
         $form->addButton("Back");
 
