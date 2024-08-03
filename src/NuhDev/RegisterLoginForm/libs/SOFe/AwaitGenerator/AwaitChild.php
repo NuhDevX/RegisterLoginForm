@@ -22,7 +22,7 @@ declare(strict_types=1);
 
 namespace NuhDev\RegisterLoginForm\libs\SOFe\AwaitGenerator;
 
-use Throwable;t
+use Throwable;
 
 /**
  * @template ParentT
