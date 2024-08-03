@@ -27,7 +27,7 @@ use Generator;
 use Logger;
 use NuhDev\RegisterLoginForm\libs\poggit\libasynql\generic\GenericStatementFileParseException;
 use NuhDev\RegisterLoginForm\libs\poggit\libasynql\result\SqlColumnInfo;
-use SOFe\AwaitGenerator\Await;
+use NuhDev\RegisterLoginForm\libs\SOFe\AwaitGenerator\Await;
 
 /**
  * Represents a database connection or a group of database connections
