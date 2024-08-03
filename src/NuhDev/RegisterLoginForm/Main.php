@@ -6,9 +6,9 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\Player;
-use jojoe77777\FormAPI\{CustomForm, SimpleForm, ModalForm};
+use NuhDev\RegisterLoginForm\libs\jojoe77777\FormAPI\{CustomForm, SimpleForm, ModalForm};
 use pocketmine\command\{Command, CommandSender};
-use poggit\libasynql\{libasynql, DataConnector};
+use NuhDev\RegisterLoginForm\libs\poggit\libasynql\{libasynql, DataConnector};
 
 class Main extends PluginBase implements Listener {
 
@@ -17,7 +17,6 @@ class Main extends PluginBase implements Listener {
 
     public function onEnable(): void {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        @mkdir($this->getDataFolder());
 
         $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
             "sqlite" => "sqlite.sql",
