@@ -6,8 +6,6 @@ projects:
   RegisterLoginForm:
     path: ""
     libs:
-    - src: SOFe/Await-Generator/await-generator
-      version: ^3.6.1
     - src: jojoe77777/FormAPI/libFormAPI
       version: ^2.1.1
 ...
